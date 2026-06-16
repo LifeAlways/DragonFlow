@@ -24,6 +24,18 @@ data/cache/
 !data/raw/.gitkeep
 !data/processed/.gitkeep
 
+# DragonFlow-KronosGraph V1 pipeline outputs (whitelist)
+!data/processed/model_panel_base.parquet
+!data/processed/model_panel_tft.parquet
+!data/processed/model_feature_schema_v1.json
+!data/processed/model_time_split_v1.json
+!data/processed/spectral_embeddings.parquet
+!data/processed/kline_embeddings.parquet
+!data/processed/tft_predictions.parquet
+!data/processed/backtest_nav.parquet
+!data/processed/backtest_positions.parquet
+!data/processed/backtest_metrics.json
+
 # Logs
 logs/
 *.log

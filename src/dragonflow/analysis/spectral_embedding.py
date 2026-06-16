@@ -102,16 +102,18 @@ def build_rolling_spectral_embeddings(
 
 
 def attach_spectral_features(panel: pd.DataFrame, embeddings: pd.DataFrame, embedding_dim: int = 8) -> pd.DataFrame:
+    placeholder_cols = ["cluster_id"] + [f"spectral_emb_{j+1}" for j in range(embedding_dim)]
+    base = panel.drop(columns=[c for c in placeholder_cols if c in panel.columns], errors="ignore")
     if embeddings.empty:
-        out = panel.copy()
+        out = base.copy()
         out["cluster_id"] = 0
         for j in range(embedding_dim):
             out[f"spectral_emb_{j+1}"] = 0.0
         return out
-    times = panel[["time_idx"]].drop_duplicates().sort_values("time_idx")
+    times = base[["time_idx"]].drop_duplicates().sort_values("time_idx")
     refits = embeddings[["refit_time_idx"]].drop_duplicates().sort_values("refit_time_idx")
     mapping = pd.merge_asof(times, refits, left_on="time_idx", right_on="refit_time_idx", direction="backward")
-    out = panel.merge(mapping, on="time_idx", how="left")
+    out = base.merge(mapping, on="time_idx", how="left")
     out = out.merge(embeddings, on=["refit_time_idx", "stock_code"], how="left")
     out["cluster_id"] = out["cluster_id"].fillna(-1).astype(int)
     for j in range(embedding_dim):
@@ -121,7 +123,15 @@ def attach_spectral_features(panel: pd.DataFrame, embeddings: pd.DataFrame, embe
 
 
 def add_cluster_peer_features(panel: pd.DataFrame) -> pd.DataFrame:
-    out = panel.copy()
+    peer_cols = [
+        "cluster_ret_mean_1d",
+        "cluster_ret_mean_5d",
+        "cluster_amount_mean",
+        "cluster_turnover_mean",
+        "stock_ret_minus_cluster_1d",
+        "stock_ret_minus_cluster_5d",
+    ]
+    out = panel.drop(columns=[c for c in peer_cols if c in panel.columns], errors="ignore")
     grp = out.groupby(["date", "cluster_id"], dropna=False)
     peer = grp.agg(
         cluster_ret_mean_1d=("ret_1d", "mean"),

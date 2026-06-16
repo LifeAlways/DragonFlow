@@ -17,9 +17,12 @@ def main():
     panel=pd.read_parquet(resolve_path(panel_path))
     kpath=resolve_path(paths['kline_embeddings'])
     if kpath.exists():
-        kemb=pd.read_parquet(kpath); panel=panel.merge(kemb, on=['date','stock_code','time_idx'], how='left')
-        for c in kemb.columns:
-            if c.startswith('kline_'): panel[c]=panel[c].fillna(0.0)
+        kemb=pd.read_parquet(kpath)
+        kline_cols=[c for c in kemb.columns if c.startswith('kline_')]
+        panel=panel.drop(columns=[c for c in kline_cols if c in panel.columns], errors='ignore')
+        panel=panel.merge(kemb, on=['date','stock_code','time_idx'], how='left')
+        for c in kline_cols:
+            if c in panel.columns: panel[c]=panel[c].fillna(0.0)
     save_parquet(panel, resolve_path(paths['tft_panel']))
     with open(resolve_path(paths['feature_schema']), 'r', encoding='utf-8') as f: schema=json.load(f)
     train_tft_model(panel, schema, cfg['model'], cfg['split'], resolve_path(paths['model_dir']))

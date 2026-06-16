@@ -1,0 +1,24 @@
+{
+  "warmup_time_idx": [
+    0,
+    39
+  ],
+  "train_time_idx": [
+    40,
+    64
+  ],
+  "valid_time_idx": [
+    65,
+    79
+  ],
+  "test_time_idx": [
+    80,
+    89
+  ],
+  "prediction_only_time_idx": [
+    90,
+    94
+  ],
+  "horizon": 5,
+  "encoder_length": 30
+}
