@@ -214,6 +214,41 @@ data/processed/backtest_positions.parquet
 data/processed/backtest_metrics.json
 ```
 
+V1 当前默认配置（已纳入消融实验结论）：
+
+```yaml
+backtest:
+  rebalance_every_n_days: 5
+  top_n: 80
+  min_amount_mean_20d: 30000000
+  q10_floor: -1.0          # 关闭下行过滤
+  score_formula: q50       # alpha 直选
+  buy_cost_bps: 10
+  sell_cost_bps: 10
+  slippage_bps: 5
+```
+
+实测：total_return +1.50%，Sharpe +0.26，MaxDD -5.26%。
+
+### 4.7 可视化（V1 流水线产物）
+
+```bash
+uv run python scripts/13_visualize_v1.py
+```
+
+12 张 SVG（矢量可编辑）输出到 `data/processed/viz_v1/`，含 NAV/回撤、Rank IC、
+5 分位组合、分位校准、谱嵌入 PCA、K 线编码诊断等。`index.html` 是浏览器入口。
+
+### 4.8 回测消融实验（可选）
+
+```bash
+uv run python scripts/14_backtest_compare.py
+```
+
+跑 4 个变体（baseline / no_q10 / q50_only / both）对比过滤器和 score 公式的边际贡献，
+输出 `13_compare_nav.svg` + `14_compare_metrics.svg`。配置改动应先在这里验证再写入
+`configs/model_v1.yaml`。
+
 ## 5. 时间切分
 
 当前 95 个交易日使用工程原型切分：
@@ -250,6 +285,8 @@ uv run python scripts/09_train_kline_encoder.py --config configs/model_v1.yaml
 uv run python scripts/10_train_tft.py --config configs/model_v1.yaml
 uv run python scripts/11_predict_tft.py --config configs/model_v1.yaml --range test
 uv run python scripts/12_backtest_strategy.py --config configs/model_v1.yaml
+uv run python scripts/13_visualize_v1.py
+uv run python scripts/14_backtest_compare.py
 ```
 
 ## 7. 调参建议

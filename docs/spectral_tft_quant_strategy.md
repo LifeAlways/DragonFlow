@@ -243,8 +243,14 @@ prediction_length = 5
 alpha_i = pred_q50_i
 downside_i = pred_q10_i
 uncertainty_i = pred_q90_i - pred_q10_i
-score_i = alpha_i / (uncertainty_i + 1e-6)
+score_i = alpha_i                         # V1 当前默认
+score_i_alt = alpha_i / (uncertainty_i + 1e-6)   # 原方案，已弃用
 ```
+
+V1 在 95 天数据下验证：`q50` 直选比 `q50/uncertainty` 多 +1.4pp 收益。
+后者会把 score 主导权交给 `uncertainty`（相关性 corr(score,unc) ≈ 0.74），
+偏好"区间窄"的股票而非 alpha 高的股票。
+长历史 + 校准更好的 V2 模型可重新评估。
 
 过滤条件：
 
@@ -536,10 +542,18 @@ portfolio:
   max_cluster_weight: 0.20
   max_industry_weight: 0.25
   min_avg_amount_20d: 30000000
+  q10_floor: -1.0          # V1 关闭下行过滤：模型 q10 系统性偏负，原 -0.03 会把池子打没
+  score_formula: q50       # 用 alpha 直选；q50_over_uncertainty 偏好低不确定股票
   buy_cost_bps: 10
   sell_cost_bps: 10
   slippage_bps: 5
 ```
+
+V1 实测（95 天 + 上述配置）：total_return +1.50%，Sharpe +0.26，MaxDD -5.26%。
+原方案（q10>-0.03 + q50/uncertainty）在同数据上是 -11.81% / -3.50 / -11.81%。
+两个改动里 `q10_floor` 贡献最大（单改即从 -11.81% → +0.11%），`score_formula`
+在大池子下再加 +1.4pp。详见 `data/processed/viz_v1/13_compare_nav.svg`
+和 `compare_metrics.json`。
 
 ## 13. 策略通过标准
 

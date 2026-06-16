@@ -568,19 +568,36 @@ prediction_version
 model_version
 ```
 
-交易打分：
+交易打分（V1 默认 `score_formula: q50`，直接用 alpha 排序）：
 
 ```text
 alpha = pred_q50_excess_ret_fwd_5d
-uncertainty = pred_q90_excess_ret_fwd_5d - pred_q10_excess_ret_fwd_5d
-score = alpha / (uncertainty + 1e-6)
+score = alpha
 ```
+
+历史上也尝试过 `q50 / uncertainty`：
+
+```text
+uncertainty = pred_q90_excess_ret_fwd_5d - pred_q10_excess_ret_fwd_5d
+score_alt = alpha / (uncertainty + 1e-6)
+```
+
+但这会偏好不确定性低（区间窄）的股票，把 alpha 信号埋掉；
+在 V1 数据上验证：用 `q50` 直选比 `q50/uncertainty` 多 +1.4pp 收益。
+代码里通过 `cfg["backtest"]["score_formula"]` 切换。
 
 可选风险过滤：
 
 ```text
-只买 pred_q10_excess_ret_fwd_5d > -0.03 的股票
+原始设计：只买 pred_q10_excess_ret_fwd_5d > -0.03 的股票
 ```
+
+**V1 当前默认关闭**（`q10_floor: -1.0`）。原因：模型 predicted q10
+全样本最大值仅 -0.028（系统性偏负，校准图证实），该过滤会把候选池
+从 1963 直接砍到 2 只，导致回测亏 11.8%。详见 `scripts/14_backtest_compare.py`
+消融实验和 `data/processed/viz_v1/13_compare_nav.svg`。
+
+V2 在长历史下若 q10 校准变好，可重新启用。
 
 ## 6. 训练/验证/测试切分
 
@@ -733,12 +750,12 @@ models/tft_csi2000_v1/
 交易成本：买入 10 bps，卖出 10 bps，滑点 5 bps
 ```
 
-过滤：
+过滤（V1 当前默认）：
 
 ```text
-score 排名前 80
-pred_q10_excess_ret_fwd_5d > -0.03
+score (= pred_q50_excess_ret_fwd_5d) 排名前 80
 amount_mean_20d >= 30000000
+q10_floor = -1.0  # 关闭，详见 5.3 节
 ```
 
 V1 不做复杂优化器，先把信号和回测链路跑通。
