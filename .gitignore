@@ -36,6 +36,13 @@ data/cache/
 !data/processed/backtest_positions.parquet
 !data/processed/backtest_metrics.json
 
+# V1 visualization outputs
+!data/processed/viz_v1/
+!data/processed/viz_v1/**
+
+# Model checkpoints: 不再放进仓库（V1 实测效果不佳，且 ckpt 易膨胀）
+models/
+
 # Logs
 logs/
 *.log

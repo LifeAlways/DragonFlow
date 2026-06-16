@@ -1,0 +1,62 @@
+<!doctype html><html><head><meta charset='utf-8'>
+<title>DragonFlow-KronosGraph V1 可视化</title>
+<style>
+body{background:#1a1a2e;color:#e0e0e0;font-family:'Microsoft YaHei','PingFang SC',sans-serif;margin:24px;}
+h1{color:#ffd700;border-bottom:1px solid #2a2a4a;padding-bottom:8px;}
+.card{background:#16213e;border:1px solid #2a2a4a;border-radius:8px;padding:14px;margin:14px 0;}
+.card h2{margin:0 0 10px 0;color:#4fc3f7;font-size:16px;}
+.card img{width:100%;border-radius:4px;}
+.err{color:#ff4444;}
+</style></head><body>
+<h1>DragonFlow-KronosGraph V1 流水线产物可视化</h1>
+<p style='color:#8892b0;'>由 <code>scripts/13_visualize_v1.py</code> 生成。
+底层模块在 <code>src/dragonflow/viz/v1/</code>，与 <code>dragonflow/viz/</code> 的 features 图隔离。</p>
+<div class='card'>
+<h2>01_nav_drawdown · 净值曲线 + 水下回撤</h2>
+<img src='01_nav_drawdown.png'>
+</div>
+<div class='card'>
+<h2>02_position_turnover · 持仓数量 & 单边换手率</h2>
+<img src='02_position_turnover.png'>
+</div>
+<div class='card'>
+<h2>03_rank_ic · 日度 Rank IC 与累计</h2>
+<img src='03_rank_ic.png'>
+</div>
+<div class='card'>
+<h2>04_quintile_returns · 5 分位组合超额累积 + 多空价差</h2>
+<img src='04_quintile_returns.png'>
+</div>
+<div class='card'>
+<h2>05_pred_vs_actual · q50 预测 vs 真实超额（hexbin）</h2>
+<img src='05_pred_vs_actual.png'>
+</div>
+<div class='card'>
+<h2>06_quantile_calibration · 分位数校准 + 80% 区间覆盖率</h2>
+<img src='06_quantile_calibration.png'>
+</div>
+<div class='card'>
+<h2>07_pred_dispersion · 预测横截面分布 + 模型不确定带</h2>
+<img src='07_pred_dispersion.png'>
+</div>
+<div class='card'>
+<h2>08_spectral_pca · 谱嵌入 PCA · cluster / industry 上色</h2>
+<img src='08_spectral_pca.png'>
+</div>
+<div class='card'>
+<h2>09_cluster_size_over_time · 簇规模随 refit 时间堆叠</h2>
+<img src='09_cluster_size_over_time.png'>
+</div>
+<div class='card'>
+<h2>10_cluster_transition · 首尾 refit 簇成员变迁矩阵</h2>
+<img src='10_cluster_transition.png'>
+</div>
+<div class='card'>
+<h2>11_kline_emb_pca · K 线嵌入 PCA · 行业上色</h2>
+<img src='11_kline_emb_pca.png'>
+</div>
+<div class='card'>
+<h2>12_kline_aux_pred · K 线辅助预测诊断</h2>
+<img src='12_kline_aux_pred.png'>
+</div>
+</body></html>
