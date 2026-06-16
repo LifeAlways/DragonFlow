@@ -40,7 +40,7 @@ def plot_spectral_pca(emb_path: Path, panel_path: Path, out_path: Path,
     for cid, grp in snap.groupby("cluster_id"):
         ax1.scatter(grp["pca_x"], grp["pca_y"], s=10, alpha=0.7,
                     color=_cluster_color(int(cid)),
-                    label=f"C{int(cid)} (n={len(grp)})")
+                    label=f"C{int(cid)} (n={len(grp)})", rasterized=True)
     ax1.set_xlabel("PCA-1", color=COLORS["text"])
     ax1.set_ylabel("PCA-2", color=COLORS["text"])
     n_clusters = snap["cluster_id"].nunique()
@@ -61,7 +61,7 @@ def plot_spectral_pca(emb_path: Path, panel_path: Path, out_path: Path,
             continue
         ax2.scatter(sub["pca_x"], sub["pca_y"], s=10, alpha=0.7,
                     color=palette[i % len(palette)],
-                    label=f"{ind} (n={len(sub)})")
+                    label=f"{ind} (n={len(sub)})", rasterized=True)
     ax2.set_xlabel("PCA-1", color=COLORS["text"])
     ax2.set_ylabel("PCA-2", color=COLORS["text"])
     ax2.set_title("同图 · 按行业 Top8 上色", color=COLORS["text"], fontsize=12, pad=10)

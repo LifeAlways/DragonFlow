@@ -60,18 +60,18 @@ def main() -> None:
     kline_path = PROCESSED / "kline_embeddings.parquet"
 
     jobs = [
-        ("01_nav_drawdown", plot_nav_drawdown, (nav_path, OUT_DIR / "01_nav_drawdown.png")),
-        ("02_position_turnover", plot_position_count, (nav_path, OUT_DIR / "02_position_turnover.png")),
-        ("03_rank_ic", plot_rank_ic, (pred_path, panel_path, OUT_DIR / "03_rank_ic.png")),
-        ("04_quintile_returns", plot_quintile_returns, (pred_path, panel_path, OUT_DIR / "04_quintile_returns.png")),
-        ("05_pred_vs_actual", plot_pred_vs_actual, (pred_path, panel_path, OUT_DIR / "05_pred_vs_actual.png")),
-        ("06_quantile_calibration", plot_quantile_calibration, (pred_path, panel_path, OUT_DIR / "06_quantile_calibration.png")),
-        ("07_pred_dispersion", plot_pred_dispersion, (pred_path, OUT_DIR / "07_pred_dispersion.png")),
-        ("08_spectral_pca", plot_spectral_pca, (spec_path, panel_path, OUT_DIR / "08_spectral_pca.png")),
-        ("09_cluster_size_over_time", plot_cluster_size_over_time, (spec_path, OUT_DIR / "09_cluster_size_over_time.png")),
-        ("10_cluster_transition", plot_cluster_transition_heat, (spec_path, OUT_DIR / "10_cluster_transition.png")),
-        ("11_kline_emb_pca", plot_kline_emb_pca, (kline_path, panel_path, OUT_DIR / "11_kline_emb_pca.png")),
-        ("12_kline_aux_pred", plot_kline_auxiliary_predictions, (kline_path, panel_path, OUT_DIR / "12_kline_aux_pred.png")),
+        ("01_nav_drawdown", plot_nav_drawdown, (nav_path, OUT_DIR / "01_nav_drawdown.svg")),
+        ("02_position_turnover", plot_position_count, (nav_path, OUT_DIR / "02_position_turnover.svg")),
+        ("03_rank_ic", plot_rank_ic, (pred_path, panel_path, OUT_DIR / "03_rank_ic.svg")),
+        ("04_quintile_returns", plot_quintile_returns, (pred_path, panel_path, OUT_DIR / "04_quintile_returns.svg")),
+        ("05_pred_vs_actual", plot_pred_vs_actual, (pred_path, panel_path, OUT_DIR / "05_pred_vs_actual.svg")),
+        ("06_quantile_calibration", plot_quantile_calibration, (pred_path, panel_path, OUT_DIR / "06_quantile_calibration.svg")),
+        ("07_pred_dispersion", plot_pred_dispersion, (pred_path, OUT_DIR / "07_pred_dispersion.svg")),
+        ("08_spectral_pca", plot_spectral_pca, (spec_path, panel_path, OUT_DIR / "08_spectral_pca.svg")),
+        ("09_cluster_size_over_time", plot_cluster_size_over_time, (spec_path, OUT_DIR / "09_cluster_size_over_time.svg")),
+        ("10_cluster_transition", plot_cluster_transition_heat, (spec_path, OUT_DIR / "10_cluster_transition.svg")),
+        ("11_kline_emb_pca", plot_kline_emb_pca, (kline_path, panel_path, OUT_DIR / "11_kline_emb_pca.svg")),
+        ("12_kline_aux_pred", plot_kline_auxiliary_predictions, (kline_path, panel_path, OUT_DIR / "12_kline_aux_pred.svg")),
     ]
 
     results = []

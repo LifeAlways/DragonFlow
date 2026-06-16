@@ -132,7 +132,7 @@ def plot_pred_vs_actual(pred_path: Path, panel_path: Path, out_path: Path) -> Pa
     x, y = x[mask], y[mask]
 
     fig, ax = plt.subplots(figsize=(8.5, 8))
-    hb = ax.hexbin(x, y, gridsize=45, mincnt=1, cmap="cool")
+    hb = ax.hexbin(x, y, gridsize=45, mincnt=1, cmap="cool", rasterized=True)
     cb = fig.colorbar(hb, ax=ax)
     cb.set_label("样本数", color=COLORS["text"])
     cb.ax.yaxis.set_tick_params(color=COLORS["text"])

@@ -67,6 +67,9 @@ def apply_dark_theme() -> None:
         "axes.unicode_minus": False,
         "font.size": 11,
         "font.weight": "normal",
+        # SVG：保持文本为 <text>，PDF 字体内嵌为 type 42（皆可编辑）
+        "svg.fonttype": "none",
+        "pdf.fonttype": 42,
         # 背景
         "figure.facecolor": bg,
         "axes.facecolor": bg,

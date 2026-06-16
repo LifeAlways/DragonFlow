@@ -45,7 +45,7 @@ def plot_kline_emb_pca(kline_path: Path, panel_path: Path, out_path: Path,
             continue
         ax.scatter(sub["pca_x"], sub["pca_y"], s=10, alpha=0.6,
                    color=palette[i % len(palette)],
-                   label=f"{ind} (n={len(sub)})")
+                   label=f"{ind} (n={len(sub)})", rasterized=True)
     ax.set_xlabel("PCA-1", color=COLORS["text"])
     ax.set_ylabel("PCA-2", color=COLORS["text"])
     ax.set_title(f"K 线编码器嵌入 PCA · 按行业 Top8 上色 · date={pd.Timestamp(latest).strftime('%Y-%m-%d')}",
@@ -83,7 +83,7 @@ def plot_kline_auxiliary_predictions(kline_path: Path, panel_path: Path,
         a_lo, a_hi = np.quantile(y, [0.01, 0.99])
         mask = (x >= p_lo) & (x <= p_hi) & (y >= a_lo) & (y <= a_hi)
         x, y = x[mask], y[mask]
-        hb = ax.hexbin(x, y, gridsize=40, mincnt=1, cmap="cool")
+        hb = ax.hexbin(x, y, gridsize=40, mincnt=1, cmap="cool", rasterized=True)
         cb = fig.colorbar(hb, ax=ax)
         cb.ax.yaxis.set_tick_params(color=COLORS["text"])
         plt.setp(cb.ax.get_yticklabels(), color=COLORS["text"])
