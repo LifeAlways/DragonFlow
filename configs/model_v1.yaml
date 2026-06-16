@@ -70,7 +70,11 @@ backtest:
   rebalance_every_n_days: 5
   top_n: 80
   min_amount_mean_20d: 30000000
-  q10_floor: -0.03
+  # 关掉 q10 下行过滤：模型 predicted q10 全样本 max=-0.028（系统性偏负），
+  # 原值 -0.03 会把候选池从 1963 直接砍到 2 只。详见 14_backtest_compare 消融。
+  q10_floor: -1.0
+  # 用 alpha 直选；q50/uncertainty 会偏好不确定性低的股票（旧值见 git history）
+  score_formula: q50
   buy_cost_bps: 10
   sell_cost_bps: 10
   slippage_bps: 5
