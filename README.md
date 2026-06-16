@@ -1,233 +1,244 @@
-## DragonFlow
+# DragonFlow
 
-A Visualization System for Market Leaders and Theme Rotation
+中证 2000 全成分股的端到端量化研究原型 —— 从 AkShare 取数、特征工程、谱聚类嵌入、TFT 分位数预测、组合回测，到 14 张矢量可视化报告。
 
-本项目为西南财经大学 《数据可视化》 课程项目。
+> 本仓库同时作为西南财经大学
+> **《数据可视化》** 与 **《金融大数据分析》** 两门课程的小组项目。
 
-我们团队专注于对热点股、龙头股进行数据可视化分析，帮助用户快速复盘过往市场走势。
+## 课程双线定位
 
-基于本项目，我们进行一次Demo Presentation。主题为：**《从夯到拉锐评2026年1至5月热点龙头股》**
+| 课程 | 重点交付 | 入口 |
+|---|---|---|
+| **数据可视化** | Notebook 探索分析、暗色金融主题图表（matplotlib + pyecharts）、流水线产物的 12 张诊断图 | `notebooks/dragonflow_analysis.ipynb`、`data/processed/viz_v1/index.html` |
+| **金融大数据分析** | "谱聚类嵌入 + Temporal Fusion Transformer + 5 日超额收益分位预测 + 组合回测"端到端流水线（DragonFlow-KronosGraph V1） | `scripts/07_*` ~ `scripts/14_*`、`docs/` 三份方案 |
 
-## 技术栈
+**Demo Presentation 主题**：《从夯到拉锐评 2026 年 1 至 5 月热点龙头股》
 
-| 模块    | 技术               | 用途          |
-| ----- | ---------------- | ----------- |
-| 开发语言  | Python           | 主要开发语言     |
-| 数据获取  | AkShare          | 获取A股行情/板块数据 |
-| 数据处理  | Pandas           | 数据清洗、时间序列处理 |
-| 数值计算  | Numpy            | 指标计算        |
-| 数据分析  | Scikit-learn     | 机器学习数据分析 |
-| 静态可视化 | Matplotlib       | 数据科学统计图表 |
-| 高级可视化 | Pyecharts        | K线图/桑基图/热力图 |
-| Web展示 | Streamlit        | 可交互分析平台 |
-| 数据存储  | CSV / Parquet / SQLite | 存储历史数据      |
-| 脚本环境  | Jupyter Notebook | 数据探索分析      |
-| 项目管理  | uv + Git         | 版本管理        |
+---
+
+## 端到端流水线（14 步）
+
+数据下载、合成代理、清洗在 01–06；建模、训练、预测、回测、可视化、消融在 07–14。
+
+```bash
+# 第一阶段：数据
+uv run python scripts/01_download_csi2000_data.py        # 中证 2000 成分股 + 行情 + 财报
+uv run python scripts/02_finalize_partial.py             # 兜底/收尾
+uv run python scripts/03_synthesize_index_proxy.py       # 等权代理指数（EM 掐流兜底）
+uv run python scripts/04_synthesize_spot_snapshot.py     # 截面快照合成
+uv run python scripts/05_feature_engineering.py          # 单股 + 截面特征
+uv run python scripts/06_clustering.py                   # 基础聚类
+
+# 第二阶段：建模（DragonFlow-KronosGraph V1）
+uv run python scripts/07_build_model_dataset.py                                # 建模面板 189811 × 104
+uv run python scripts/08_spectral_embedding.py   --config configs/model_v1.yaml # 滚动谱嵌入 + cluster_id
+uv run python scripts/09_train_kline_encoder.py  --config configs/model_v1.yaml # Kronos 思路 K 线编码器
+uv run python scripts/10_train_tft.py            --config configs/model_v1.yaml # 小型 TFT 分位回归
+uv run python scripts/11_predict_tft.py          --config configs/model_v1.yaml --range test
+uv run python scripts/12_backtest_strategy.py    --config configs/model_v1.yaml # Top-N 多头回测
+uv run python scripts/13_visualize_v1.py                                       # 12 张 SVG + index.html
+uv run python scripts/14_backtest_compare.py                                   # 4 变体消融实验
+```
+
+---
+
+## 数据可视化交付
+
+### Notebook（《数据可视化》课程主交付）
+
+- `notebooks/dragonflow_analysis.ipynb` — 主分析 notebook
+- `notebooks/dragonflow_analysis.html` / `.pdf` / `.md` — 导出版本（无需 Jupyter 即可阅读）
+- `notebooks/_charts/` — 8 份 pyecharts 交互式 HTML
+- `notebooks/dragonflow_analysis_files/` — 17 张 matplotlib PNG
+
+Notebook 调用 `src/dragonflow/viz/` 下的可视化函数：
+
+| 模块 | 用途 |
+|---|---|
+| `viz/theme.py` | 金融暗色主题（matplotlib + pyecharts 共用）、聚类色板 |
+| `viz/charts_matplotlib.py` | 14 张静态图：月收益小提琴、行业风险收益气泡、波动 vs 收益、PCA 散点、肘点轮廓、聚类箱线 |
+| `viz/charts_pyecharts.py` | 10 张交互图：指数线、涨跌柱、成交额面积、行业月度热力图、河流图、聚类雷达、桑基图、K 线、多股对比 |
+
+### V1 流水线可视化（《金融大数据分析》课程支撑）
+
+14 张 **SVG**（矢量可编辑，文字保留为 `<text>` 节点）输出到 `data/processed/viz_v1/`：
+
+| # | 图 | 说明 |
+|---|---|---|
+| 01 | NAV + 水下回撤 | 策略净值、最大回撤区间 |
+| 02 | 持仓 & 换手率 | 双轴时间序列 |
+| 03 | Rank IC | 日度柱状 + 累计折线（IC=+0.082 / ICIR=+1.12） |
+| 04 | 5 分位组合 | Q1–Q5 累计超额 + 多空价差（Top-Bottom +18.75%） |
+| 05 | 预测 vs 真实 | q50 hexbin + OLS 回归 |
+| 06 | 分位数校准 | q10/q50/q90 点图 + 80% 区间覆盖率 |
+| 07 | 预测横截面分布 | 25/50/75 分位带 + 模型不确定区间 |
+| 08 | 谱嵌入 PCA | 双面板：cluster 着色 / 行业着色 |
+| 09 | 簇规模时间堆叠 | 12 个 cluster 随 refit 漂移 |
+| 10 | 簇成员变迁矩阵 | 首尾 refit 重叠混淆矩阵 |
+| 11 | K 线嵌入 PCA | 行业 Top8 上色 |
+| 12 | K 线辅助预测诊断 | ret_1d / vol_5d 散点 |
+| **13** | **回测消融 NAV 对比** | 4 变体叠加（baseline / no_q10 / q50_only / both） |
+| **14** | **消融指标表** | total / sharpe / mdd 对照 |
+
+入口：`data/processed/viz_v1/index.html`。SVG 在 Inkscape / Illustrator / Affinity Designer 中可直接编辑文字与配色。
+
+---
+
+## 主要结论（V1 实测）
+
+| 指标 | 原配置 | 修复后 |
+|---|---|---|
+| **总收益** | -11.81% | **+1.50%** |
+| **Sharpe** | -3.50 | **+0.26** |
+| **最大回撤** | -11.81% | **-5.26%** |
+
+模型本身有 alpha（Rank IC +0.082、Top–Bottom +18.75%），但原 `q10_floor=-0.03` 把候选池从 1999 砍到 2 只，导致回测亏 11.8%。详见 `docs/` 与 `data/processed/viz_v1/13_compare_nav.svg`。
+
+---
 
 ## 项目结构
 
 ```
 DragonFlow/
-├── app/                              # Streamlit 可视化前端
-├── public/                           # 静态资源
-├── src/
-│   └── dragonflow/                   # 业务核心包
-│       ├── data/
-│       │   ├── download.py           # 各数据源下载器
-│       │   └── schema.py             # 字段映射 / 列名标准化
-│       └── utils/
-│           ├── io.py                 # 路径、CSV/Parquet 读写
-│           └── logger.py             # 统一日志
-├── scripts/
-│   └── 01_download_csi2000_data.py   # 第一步：数据下载入口
-├── data/                             # 数据目录（已在 .gitignore 忽略大文件）
-│   ├── raw/
-│   │   ├── csi2000/                  # 成分股 / 指数日行情
-│   │   ├── stock_daily/qfq/          # 单只股票日线 CSV（断点续跑）
-│   │   └── fundamental/              # 基础信息 / 快照 / 财报
-│   └── processed/                    # 合并后的长表 + 报告
-├── config.yaml                       # 默认配置
-└── main.py                           # 主程序
+├── app/                              # 前端：FastAPI + React (Vite/TS) + Streamlit
+│   ├── api/main.py                   # FastAPI 后端
+│   ├── src/                          # React 前端（6 页 + 3 组件）
+│   └── streamlit_app.py              # Streamlit 单文件 dashboard
+├── configs/
+│   └── model_v1.yaml                 # V1 训练 + 回测配置
+├── data/
+│   ├── raw/                          # 原始下载（gitignore）
+│   └── processed/                    # 加工产物 + V1 流水线输出
+│       ├── stock_daily_*.parquet     # 个股日线长表
+│       ├── model_panel_*.parquet     # 建模面板
+│       ├── tft_predictions.parquet   # TFT 预测
+│       ├── backtest_*.parquet        # 回测净值/持仓/指标
+│       └── viz_v1/                   # 14 张 SVG + index.html
+├── docs/
+│   ├── spectral_tft_quant_strategy.md      # 策略总蓝图
+│   ├── tft_feature_architecture_v1.md      # 特征/IO schema/模型架构
+│   └── training_guide_kronosgraph_v1.md    # 服务器训练手册
+├── notebooks/                        # 《数据可视化》课程交付
+│   ├── dragonflow_analysis.ipynb
+│   └── _charts/, *_files/, *.html/.pdf/.md
+├── scripts/01-14_*.py                # 14 步流水线
+├── src/dragonflow/
+│   ├── analysis/                     # 聚类、谱嵌入
+│   ├── backtest/                     # portfolio / execution / metrics
+│   ├── data/                         # 下载、schema、预处理
+│   ├── features/                     # 特征工程
+│   ├── modeling/                     # TFT、K 线编码器、targets、技术/市场特征
+│   ├── utils/                        # io / logger
+│   └── viz/
+│       ├── charts_matplotlib.py      # 静态图
+│       ├── charts_pyecharts.py       # 交互图
+│       ├── theme.py                  # 暗色主题
+│       └── v1/                       # V1 流水线专用可视化（与上面隔离）
+│           ├── backtest.py
+│           ├── predictions.py
+│           ├── spectral.py
+│           ├── kline.py
+│           └── compare.py
+└── pyproject.toml + uv.lock
 ```
+
+---
 
 ## 快速开始
 
 ```bash
-# 安装依赖（推荐 uv）
+# 1. 安装基础依赖
 uv sync
 
-# 或退化到 pip
-pip install -e .
+# 2. 装 PyTorch（按机器情况二选一）
+# GPU（CUDA ≥ 13.0 驱动）：
+uv pip install torch --index-url https://download.pytorch.org/whl/cu130
+# 或纯 CPU 冒烟测试：
+uv pip install torch --index-url https://download.pytorch.org/whl/cpu
+
+# 3. 已包含 2026-01 ~ 05 中证2000 数据快照，无需再跑 01_download
+# 直接从 07 开始：
+uv run python scripts/07_build_model_dataset.py
 ```
 
-## 第一步：下载中证2000数据
-
-> 本步骤只做"数据下载与本地落盘"。不会做收益率/波动率/PCA/聚类/可视化等任何加工。
-
-### 数据来源
-
-- **AkShare**（封装东方财富 / 中证指数 / 新浪等接口）
-- 成分股：`index_stock_cons_csindex` → `index_stock_cons` → `index_stock_cons_sina` 自动 fallback
-- 指数行情：`index_zh_a_hist` → `stock_zh_index_daily_em` → 新浪 `stock_zh_index_daily` 自动 fallback
-- 个股日线：**主源** `stock_zh_a_hist`（EM 前复权），**备源** `stock_zh_a_daily`（新浪），单只失败自动降级
-- 个股基础信息：`stock_individual_info_em`
-- 截面快照：`stock_zh_a_spot_em` 过滤成分股
-- 财报：`stock_lrb_em` / `stock_zcfz_em` / `stock_xjll_em`，优先 `20260331`，自动回退 `20251231 / 20250930 / 20250630`
-
-> ⚠️ **AkShare 大量接口依赖 `*.eastmoney.com` 的 `push2his` 子域名**。如果本机代理 / 防火墙对该域名间歇性掐流，**指数行情**与**个股 K 线**都会失败。
-> 这就是为什么我们给个股日线加了**新浪 fallback**（已稳定补齐 2000/2000），并给指数行情加了**本地等权重代理合成**（见下）作为兜底。
-
-### 默认时间窗口
-
-- `start_date = 2026-01-01`
-- `end_date   = 2026-05-31`
-
-### 运行命令
-
+启动 React 前端（可选）：
 ```bash
-# uv 用户
-uv run python scripts/01_download_csi2000_data.py \
-  --start-date 2026-01-01 \
-  --end-date 2026-05-31 \
-  --index-code 932000 \
-  --adjust qfq
-
-# 或直接 python
-python scripts/01_download_csi2000_data.py \
-  --start-date 2026-01-01 \
-  --end-date 2026-05-31 \
-  --index-code 932000 \
-  --adjust qfq
+cd app && npm install && npm run dev
 ```
 
-### 命令行参数
-
-| 参数 | 默认 | 说明 |
-| --- | --- | --- |
-| `--start-date` | `2026-01-01` | 起始日期 |
-| `--end-date` | `2026-05-31` | 结束日期 |
-| `--index-code` | `932000` | 指数代码 |
-| `--adjust` | `qfq` | 复权方式：`qfq` / `hfq` / `""` |
-| `--force` | `False` | 忽略已存在的单只股票 CSV，强制重新下载 |
-| `--sleep` | `0.3` | 单只股票请求之间的间隔秒数 |
-| `--max-workers` | `1` | 并发数（当前串行；预留） |
-| `--skip-fundamental` | `False` | 跳过基础信息/快照/财报（只跑行情） |
-| `--limit` | `0` | 仅下载前 N 只成分股（冒烟测试用，0=全部） |
-
-### 输出文件
-
+启动 Streamlit dashboard（可选）：
+```bash
+uv run streamlit run app/streamlit_app.py
 ```
-data/raw/csi2000/
-  constituents_932000_YYYYMMDD.csv
-  constituents_932000_latest.csv
-  index_daily_932000_20260101_20260531.csv
-  index_daily_932000_20260101_20260531.parquet
-
-data/raw/stock_daily/qfq/
-  {stock_code}.csv          # 一只股票一个文件，断点续跑
-
-data/raw/fundamental/
-  stock_info_csi2000_YYYYMMDD.csv
-  stock_spot_snapshot_YYYYMMDD.csv
-  profit_YYYYMMDD.csv
-  balance_YYYYMMDD.csv
-  cashflow_YYYYMMDD.csv
-
-data/processed/
-  stock_daily_csi2000_qfq_20260101_20260531.csv
-  stock_daily_csi2000_qfq_20260101_20260531.parquet
-  stock_info_csi2000_latest.parquet
-  stock_spot_snapshot_csi2000_latest.parquet
-  fundamental_csi2000_latest.parquet
-  fundamental_csi2000_latest.csv
-  data_coverage_report.csv
-  download_manifest.json
-  download_errors.csv
-```
-
-### 常见问题
-
-- **接口失败 / 网络慢**：脚本对成分股、指数行情、财报都配置了多接口 fallback。临时性失败可以直接重跑（默认会跳过已下载文件，断点续跑）。
-- **部分股票缺失**：停牌、退市、新上市的个股可能某个时段没数据；脚本会写入 `data/processed/download_errors.csv` 记录原因，且会在 `data_coverage_report.csv` 中体现覆盖率。
-- **如何断点续跑**：直接重跑同样的命令即可，`data/raw/stock_daily/qfq/{code}.csv` 已存在的股票会自动跳过。需要刷新某段数据时加 `--force`。
-- **AkShare 限流**：可加大 `--sleep`（如 0.5/1.0）减小请求频率。
-- **首次冒烟测试**：可以加 `--limit 20 --skip-fundamental` 只下载 20 只成分股的日线，快速验证环境。
-
-### 不要做的事情（本步骤约束）
-
-- 不计算收益率 / 波动率 / 最大回撤 / FFT / PCA / 聚类
-- 不修改 Streamlit 前端
-- 不把大型原始数据提交到 git（默认 `.gitignore` 排除 `data/raw` 与 `data/processed`；当前仓库的数据快照是手动 `git add -f` 上传的）
 
 ---
 
-## 当前仓库里已经有什么数据（2026-06-08 快照）
+## 技术栈
 
-这一份数据是 2026-01 ~ 05 的 csi2000 行情画像所需的全部"第一步"产出，**下一位同学 clone 之后无需再下载**就能直接开干。
-某些数据因 EM 代理偶发掐流没能拿到官方版，已用本地合成代理顶替——具体见下表："来源"列里凡是 `computed_local_*` / `derived_from_*` 的都是本地合成产物，**不是官方接口数据**，做学术报告时请如实标注。
+| 模块 | 技术 | 用途 |
+|---|---|---|
+| 开发语言 | Python 3.11 | 主要开发语言 |
+| 数据获取 | AkShare | 中证 2000 成分股/指数/财报 |
+| 数据处理 | Pandas / Numpy / PyArrow | 长表清洗、滚动窗口、parquet IO |
+| 机器学习 | Scikit-learn / Scipy | PCA / KMeans / 谱嵌入 / 相关性 |
+| 深度学习 | **PyTorch** | TFT 分位回归、K 线编码器 |
+| 静态可视化 | Matplotlib | 14 张 V1 SVG + 笔记本统计图 |
+| 交互可视化 | Pyecharts | K 线、桑基、热力图、河流 |
+| Web 前端 | React + Vite + TS / Streamlit | 双前端方案 |
+| Web 后端 | FastAPI + Uvicorn | 数据 API |
+| 数据存储 | CSV / Parquet | 原始 + 加工 |
+| 笔记本 | Jupyter | 探索式数据可视化 |
+| 项目管理 | uv + Git | 依赖锁定 + 版本管理 |
+
+---
+
+## 仓库里已有什么数据（2026-06-08 快照）
+
+下一位同学 clone 之后**无需再下载**就能直接开干。部分数据因 EM 代理偶发掐流，已用本地合成代理顶替，"来源"列里 `computed_local_*` / `derived_from_*` 即为本地合成产物，**不是官方接口数据**，做学术报告时请如实标注。
 
 | 数据 | 状态 | 文件 | 行数 | 来源 |
 |---|---|---|---|---|
 | 中证2000成分股 | ✅ 100% | `data/raw/csi2000/constituents_932000_*.csv` | 2000 | 中证指数 `index_stock_cons_csindex` |
-| **个股日线** (前复权) | ✅ **100%** | `data/raw/stock_daily/qfq/*.csv` + `data/processed/stock_daily_csi2000_qfq_*.csv/.parquet` | 2000 只 / 189,811 行 | EM `stock_zh_a_hist` 优先 + 新浪 `stock_zh_a_daily` 兜底 |
-| **中证2000指数日线（官方）** | ✅ **100%** | `data/raw/csi2000/index_daily_932000_*.csv/.parquet` | **95** | EM `stock_zh_index_daily_em(csi932000)` |
-| 中证2000指数日线（本地代理） | ✅ 备用 | `data/processed/index_daily_932000_proxy_equal_weight_*.csv/.parquet` | 94 | `computed_local_equal_weight_proxy`（成分股等权日收益累乘）—— 与官方版并存供对照 |
-| 个股基础信息 | ⚠️ 68.6% | `data/raw/fundamental/stock_info_csi2000_*.csv` + `data/processed/stock_info_csi2000_latest.parquet` | **1371 / 2000** | EM `stock_individual_info_em`，剩 629 只仍受代理偶发断流影响 |
-| 截面快照（官方） | ❌ 0 | 无（EM `82.push2` 子域分页第 4-10 页必断；akshare 没有可分批的替代接口） | — | — |
-| **截面快照（本地合成）** | ✅ 替代 | `data/processed/stock_spot_snapshot_csi2000_latest.csv/.parquet` | 2000 | `derived_from_last_daily_row`（取每只股票合并长表里最后一个交易日的数据） |
-| 利润表 (2026Q1) | ✅ | `data/raw/fundamental/profit_20260331.csv` + 合并到 `fundamental_csi2000_latest.*` | ~2000 | EM `stock_lrb_em` |
-| 资产负债表 (2026Q1) | ✅ | `data/raw/fundamental/balance_20260331.csv` + 合并到 `fundamental_csi2000_latest.*` | ~2000 | EM `stock_zcfz_em` |
-| 现金流量表 (2026Q1) | ✅ | `data/raw/fundamental/cashflow_20260331.csv` + 合并到 `fundamental_csi2000_latest.*` | ~2000 | EM `stock_xjll_em` |
+| **个股日线**（前复权）| ✅ **100%** | `data/raw/stock_daily/qfq/*.csv` + `data/processed/stock_daily_csi2000_qfq_*.parquet` | 2000 只 / 189,811 行 | EM `stock_zh_a_hist` 优先 + 新浪兜底 |
+| **中证2000指数日线**（官方）| ✅ **100%** | `data/raw/csi2000/index_daily_932000_*.csv/.parquet` | 95 | EM `stock_zh_index_daily_em(csi932000)` |
+| 中证2000指数日线（本地代理）| ✅ 备用 | `data/processed/index_daily_932000_proxy_equal_weight_*.parquet` | 94 | `computed_local_equal_weight_proxy` |
+| 个股基础信息 | ⚠️ 68.6% | `data/processed/stock_info_csi2000_latest.parquet` | 1371 / 2000 | EM `stock_individual_info_em` |
+| 截面快照（本地合成）| ✅ 替代 | `data/processed/stock_spot_snapshot_csi2000_latest.parquet` | 2000 | `derived_from_last_daily_row` |
+| 利润表 (2026Q1) | ✅ | `data/processed/fundamental_csi2000_latest.parquet` | ~2000 | EM `stock_lrb_em` |
+| 资产负债表 (2026Q1) | ✅ | 同上 | ~2000 | EM `stock_zcfz_em` |
+| 现金流量表 (2026Q1) | ✅ | 同上 | ~2000 | EM `stock_xjll_em` |
 
-报告与日志：
-- `data/processed/download_manifest.json` — 每次主脚本运行的元数据
-- `data/processed/download_errors.csv` — 失败明细（stage / stock_code / error_type / error_message / time）
-- `data/processed/data_coverage_report.csv` — 每只成分股的覆盖率（n_daily_rows / first_date / last_date / missing_ratio / download_success）
+V1 流水线产物（**已纳入 git，无需重训重跑**）：
 
-### 本地合成产物的脚本
-
-```bash
-# 等权重 csi2000 代理指数（依赖合并长表）
-uv run python scripts/03_synthesize_index_proxy.py
-
-# 截面快照（取每只股票最后一个交易日）
-uv run python scripts/04_synthesize_spot_snapshot.py
+```
+data/processed/
+  model_panel_base.parquet         # 189811 × 104 建模面板
+  model_panel_tft.parquet          # 同上 + 谱嵌入列
+  spectral_embeddings.parquet      # 22000 × (refit, code, cluster, 8 维)
+  kline_embeddings.parquet         # 131811 × K 线编码 4 维 + 辅助预测 3 列
+  tft_predictions.parquet          # 19998 × (date, code, q10/q50/q90)
+  backtest_nav.parquet             # 95 天 NAV
+  backtest_positions.parquet       # 持仓明细
+  backtest_metrics.json            # total / sharpe / mdd
+  viz_v1/                          # 14 张 SVG + 4 个对比 NAV parquet + index.html
 ```
 
-两个合成脚本都是**只读 + 输出到 `data/processed/`**，可以随时安全重跑。
+---
 
-### 想再补齐的数据该怎么做
+## 常见问题
 
-1. **stock_info 剩 629 只**：直接跑 `_oneshot_fill_stock_info.py`，它会读现有 CSV 并只查缺失的成分股（增量、可重复运行）：
-   ```bash
-   uv run python scripts/_oneshot_fill_stock_info.py
-   ```
-2. **官方指数日线（如果之后被刷新或要换日期）**：跑 `_oneshot_fetch_index.py`，含多次重试：
-   ```bash
-   uv run python scripts/_oneshot_fetch_index.py
-   ```
-3. **官方截面快照**：等 `82.push2.eastmoney.com` 恢复后跑：
-   ```bash
-   uv run python -c "
-   import sys; sys.path.insert(0,'src')
-   import pandas as pd
-   from dragonflow.data.download import download_spot_snapshot
-   cons = pd.read_csv('data/raw/csi2000/constituents_932000_latest.csv', dtype={'stock_code':str}, encoding='utf-8-sig')
-   df, _ = download_spot_snapshot(constituent_codes=cons['stock_code'])
-   df.to_csv('data/processed/stock_spot_snapshot_csi2000_official.csv', index=False, encoding='utf-8-sig')
-   df.to_parquet('data/processed/stock_spot_snapshot_csi2000_official.parquet', index=False)
-   "
-   ```
+- **接口失败 / 网络慢**：脚本对成分股、指数行情、财报都配置了多接口 fallback。临时性失败可以直接重跑（默认会跳过已下载文件，断点续跑）。
+- **AkShare 限流**：可加大 `--sleep`（如 0.5/1.0）减小请求频率。
+- **首次冒烟测试**：可以加 `--limit 20 --skip-fundamental` 只下载 20 只成分股的日线，快速验证环境。
+- **本地无 GPU**：装 CPU 版 torch，流水线照样能跑完，只是 09/10 训练慢一些。
+- **想自己改图**：所有图都是矢量 SVG，文字是 `<text>` 节点。Inkscape / Illustrator 打开直接编辑；改色可用文本编辑器搜替换 hex（如 `#4fc3f7` → 你的主色）。
 
-### 下一位同学可以直接开始的画像工作
+---
 
-成分股、个股日线、财报三表、个股基础信息（≥47%）、合成代理指数、合成快照——这些组合起来已经可以支持以下分析：
+## 详细方案文档
 
-- **收益 / 趋势**：从 `stock_daily_csi2000_qfq_*.parquet` 起步，按 stock_code 分组算累计收益、N 日动量、SMA/EMA 斜率
-- **相对市场**：以 `index_daily_932000_proxy_equal_weight_*.parquet` 为基准，计算个股超额、Beta、相关系数
-- **波动 / 风险**：日波动率、下行波动、最大回撤、Calmar、Sharpe
-- **流动性**：换手率分位、`amount` / `amplitude` 截面分布
-- **截面特征**：用 `fundamental_csi2000_latest.parquet` 接入 ROE / 资产负债率 / 营收同比等做"基本面分层"
-- **形态聚类**：每只标准化日收益曲线 → PCA → KMeans/DBSCAN 给出"龙头形态 / 震荡形态 / 破位形态"等标签
+策略与实现细节见 `docs/`：
 
-所有 schema 字段命名见 `src/dragonflow/data/schema.py`，加载方式见 `src/dragonflow/utils/io.py`（`load_csv_codes` 自动把 `stock_code` 保留为 6 位字符串）。
+- `spectral_tft_quant_strategy.md` — 策略总蓝图（13 节）：目标、特征体系、谱聚类嵌入、TFT 模型设计、信号生成、组合构建、回测、风控、落地路线
+- `tft_feature_architecture_v1.md` — V1 特征/IO schema：数据输入、训练标签、80 列 schema、TFT 输入输出、训练切分
+- `training_guide_kronosgraph_v1.md` — 服务器训练手册：环境、配置、一键脚本顺序、调参建议
