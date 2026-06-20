@@ -1,0 +1,4 @@
+﻿cluster_id,cluster_name,stock_count,mean_return,mean_volatility,mean_drawdown,mean_turnover,mean_amplitude
+0,放量突破型,312,67.919,53.214,-24.063,1.094,4.597
+1,低流动性型,1362,-12.502,40.543,-28.619,1.708,3.422
+2,高弹性反弹型,326,21.429,68.201,-33.705,7.789,5.53

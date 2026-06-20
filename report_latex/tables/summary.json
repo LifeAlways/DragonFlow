@@ -1,0 +1,44 @@
+{
+  "n_stocks": 2000,
+  "n_daily_rows": 189811,
+  "n_index_rows": 95,
+  "date_start": "2026-01-05",
+  "date_end": "2026-05-29",
+  "mean_daily_rows": 94.906,
+  "min_daily_rows": 83,
+  "max_daily_rows": 95,
+  "download_success": 2000,
+  "anomaly_count": 8,
+  "remaining_na": 251445,
+  "pca_components": 11,
+  "pca_variance": 0.9087,
+  "best_k": 3,
+  "representatives": {
+    "低流动性型": [
+      "600939",
+      "重庆建工"
+    ],
+    "放量突破型": [
+      "688383",
+      "新益昌"
+    ],
+    "高弹性反弹型": [
+      "300503",
+      "昊志机电"
+    ]
+  },
+  "extracted_notebook_images": [
+    "notebook_dragonflow_analysis_11_0.png",
+    "notebook_dragonflow_analysis_12_0.png",
+    "notebook_dragonflow_analysis_13_0.png",
+    "notebook_dragonflow_analysis_14_0.png",
+    "notebook_dragonflow_analysis_16_0.png",
+    "notebook_dragonflow_analysis_17_0.png",
+    "notebook_dragonflow_analysis_18_0.png",
+    "notebook_dragonflow_analysis_20_0.png",
+    "notebook_dragonflow_analysis_22_0.png",
+    "notebook_dragonflow_analysis_23_0.png",
+    "notebook_dragonflow_analysis_7_0.png",
+    "notebook_dragonflow_analysis_8_0.png"
+  ]
+}
